@@ -1,0 +1,26 @@
+
+.card {
+    width: fit-content;
+    background-color: #ffffff;
+    border: 1px solid #747264;
+    cursor: pointer;
+    text-decoration: none;
+    margin: 2vh;
+    min-height: 18vh;
+}
+
+.cards {
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 0 5vw;
+    margin: 5vh 2vw 2vw 0 !important;
+    width: 100vw !important;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.left {
+    max-width: 13vw;
+}
