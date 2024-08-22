@@ -1,3 +1,51 @@
 {% extends 'base.html' %}
 {% block css %} <link rel="stylesheet" href="../static/css/forms.css"> {% endblock %}
 {% block title %}Aggiungi Dipendente{% endblock %}
+{% block back %}href=" {{ url_for('employees') }}"{% endblock %}
+
+{% block container %}
+<form action="" method="post" class="form" novalidate autocomplete="off">
+    {{ form.hidden_tag() }}
+    <div class="input-group">
+        <div class="form-floating">
+            {{form.nominativo(class="form-control" + (" is-invalid" if form.nominativo.errors else ""), placeholder="Nominativo") }}
+            {{ form.nominativo.label() }}
+            {% for error in form.nominativo.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="form-floating ms-4">
+            <!-- {{ form.ruolo.label() }} -->
+            {{form.ruolo(class="form-control form-select" + (" is-invalid" if form.ruolo.errors else ""), placeholder="Ruolo") }}
+            {% for error in form.ruolo.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="input-group mt-4">
+        <div class="form-floating me-3">
+            {{form.ore(class="form-control ore", placeholder="Ore", max=24) }}
+            {{ form.ore.label() }}
+        </div>
+        <div class="form-floating  me-3">
+            {{form.inizio(class="form-control", placeholder="Inizio servizio") }}
+            {{ form.inizio.label() }}
+        </div>
+        <div class="form-floating">
+            {{form.fine(class="form-control", placeholder="Fine servizio") }}
+            {{ form.fine.label() }}
+        </div>
+    </div>
+    <div class="input-group mt-4">
+        <div class="form-floating me-3" style="max-width: fit-content;">
+            {{form.riposi(class="form-control", placeholder="Riposi settimanali") }}
+            {{ form.riposi.label() }}
+        </div>
+        <div class="form-check">
+            {{form.piu_turni(class="form-check-input", placeholder="Più turni") }}
+            {{ form.piu_turni.label(class="form-check-label") }}
+        </div>
+    </div>
+    <button class="btn btn-secondary mt-4" type="submit">Aggiungi vigilante</button>
+</form>
+{% endblock %}

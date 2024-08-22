@@ -1,0 +1,18 @@
+.form {
+    width: 40vw;
+    padding: 4vh;
+    margin-top: 3vh;
+    background-color: #FFFF;
+    border-radius: 20px;
+    border: 1px solid #747264;
+}
+
+.form input, .form select {
+    border: 1px solid #747264;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+}
+
