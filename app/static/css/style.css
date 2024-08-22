@@ -4,6 +4,7 @@
     font-family: "Roboto", sans-serif;
     font-weight: 400;
     font-style: normal;
+    color: #3C3633;;
 }
 
 .navbar {
@@ -16,4 +17,17 @@ body {
     background-color: #EEEDEB;
     height: 92vh;
     width: 100vw;
+}
+
+.back_btn a {
+    color: #198754;
+    text-decoration: none;
+}
+
+.btn:hover a {
+    color: #FFFF;
+}
+
+.back_btn:hover svg {
+    fill: #FFFF;
 }

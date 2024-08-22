@@ -1,0 +1,23 @@
+.add_btn {
+    display: flex;
+    justify-content: center;
+    font-size: 36px;
+}
+
+.add_btn button {
+    padding: 2vh 3vw;
+    border-radius: 20px;
+    background-color: #E0CCBE;
+    color: #3C3633;
+    cursor: pointer;
+    border: 1px solid #3C3633;
+}
+
+.add_btn button:hover{
+    background-color: #747264;
+}
+
+.add_btn button:hover span, .add_btn button:hover span svg {
+    color: #FFFF;
+    fill: #FFFF !important;
+}
