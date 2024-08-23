@@ -17,7 +17,7 @@
     <nav class="navbar navbar-expand-sm">
         <div class="container-fluid">
             <a href="" class="navbar-brand h1" style="font-size: 40px; font-family: 'Roboto Slab', serif; font-weight: 500;">{% block nav_title %}{% endblock %}</a>
-            <form class="search-form d-flex" role="search">
+            <form class="search-form d-flex" role="search" autocomplete="off">
                 {% block form %}{% endblock %}
             </form>
             <button class="btn back_btn btn-outline-danger btn-lg" type="button">
@@ -34,5 +34,6 @@
         {% block container %}
         {% endblock %}
     </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 {% block css %} <link rel="stylesheet" href="../static/css/employees.css">{% endblock %}
 {% block title %} Dipendenti {% endblock %}
 {% block form %}
-<input class="form-control me-2" type="search" placeholder="Cerca dipendente" aria-label="Search" style="width: 20vw;">
+<input class="form-control me-2" type="search" placeholder="Cerca dipendente" aria-label="Search" style="width: 20vw;", name="nominativo">
 <button class="btn btn-outline-success btn-lg" type="submit">Cerca</button>
 {% endblock %}
 {% block container %}
@@ -14,7 +14,165 @@
         </button>
     </a>
 </div>
-<div class="list">
+    <div class="row">
+        <div class="col">
+            <div class="list mt-5 text-center">
+                {% if ruoli %}
+                    {% for ruolo in ruoli %}
+                        <div class="dropdown mt-3">
+                            <div class="dropdown-toggle" role_id ="{{ ruolo[0] }}">
+                                {{ ruolo[1] }}
+                            </div>
+                            <div class="dropdown-menu" id="dropdownMenu{{ ruolo[0] }}">
+                                {% for vigilante in vigilanti %}
+                                    {% if vigilante[2] == ruolo[0] %}
+                                        <a href="#" class="dropdown-item" data-id="{{ vigilante[0] }}" data-name="{{ vigilante[1] }}" data-role="{{ ruolo[1] }}">
+                                            {{ vigilante[1] }}
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                <h1>Nessun vigilante trovato</h1>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col mt-5">
+            <div class="view">
+                <form class="form change" action="" method="post" novalidate autocomplete="off">
+                    {{ form.hidden_tag() }}
+                    {{ form.hidden_id(value="", id="hidden_id")}}
+                    {{form.nominativo(class="form-control-plaintext nominativo" + (" is-invalid" if form.nominativo.errors else ""), disabled=True, id="nominativo") }}
+                    {% for error in form.nominativo.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                    {{form.ruolo(class="form-control-plaintext ruolo" + (" is-invalid" if form.ruolo.errors else ""), disabled=True, id='ruolo') }}
+                    {% for error in form.ruolo.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                    <hr>
+                    <h3 class="text-center">Preferenze</h3>
+                    <div class="input-group text-center">
+                        <div class="input">
+                            <label for="inizio">Ora di inizio</label>
+                            {{form.inizio(class="form-control-plaintext", id="inizio", disabled=True)}}
+                        </div>
+                        <div class="input">
+                            <label for="fine">Ora di fine</label>
+                            {{form.fine(class="form-control-plaintext", id="fine", disabled=True)}}
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <div class="input">
+                            <label for="ore">Ore di lavoro</label>
+                            {{form.ore(class="form-control-plaintext", id="ore", disabled=True)}}
+                        </div>
+                        <div class="input">
+                            <label for="riposi">Riposi settimanali</label>
+                            {{form.riposi(class="form-control-plaintext", id="riposi", disabled=True)}}
+                        </div>
+                        <div class="check">
+                            <div class="form-check">
+                                <label class="form-check-label" for="piu_turni">Più turni</label>
+                                {{form.piu_turni(class="form-check-input", id="piu_turni", disabled=True)}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttons mt-3 p-4">
+                        <button type="button" class="btn btn-secondary" id="modifica">Modifica</button>
+                    <button type="button" class="btn btn-danger" id="delete">Elimina</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+<script>
 
-</div>
+    // Delete vigilante
+    document.querySelector('#delete').addEventListener('click', function () {
+        var id = document.querySelector('#hidden_id').value
+
+        fetch('delete_vigilante', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({id: id})
+        })  .then(response => response.json())
+            .then(data => {
+                if(data==true) {
+                    window.location.reload();
+                }
+            })
+    })
+    // Show vigilantes
+    document.querySelectorAll('.dropdown-toggle').forEach(item => {
+        item.addEventListener('click', function () {
+            id = this.getAttribute('role_id');
+            var dropdownMenu = document.getElementById('dropdownMenu' + id);
+            dropdownMenu.classList.toggle('show');
+        })  
+    });
+
+    // Show vigilante preferences
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', function(event) {
+            event.preventDefault();
+            var id_vigilante = this.getAttribute('data-id');
+            var nominativo = this.getAttribute('data-name');
+            var ruolo = this.getAttribute('data-role');
+            
+            // Sending post request to retrive the clicked user preferences
+            fetch('get_vigilante_preferences', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({id: id_vigilante})
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('nominativo').value = nominativo;
+
+                // Code to select ruolo option in the select input
+               var select = document.querySelector('.ruolo');
+               opzioni = Array.from(select.options);
+               opzione = opzioni.find(item => item.text === ruolo);
+               opzione.selected = true;
+
+               document.querySelector('#hidden_id').value = id_vigilante
+               document.querySelector('#inizio').value = data[4]
+               document.querySelector('#fine').value = data[5]
+               document.querySelector('#piu_turni').checked = data[3]
+               document.querySelector('#riposi').value = data[6]
+               document.querySelector('#ore').value = data[2]
+            })
+        })
+    });
+
+    // Modify preferences
+    let isClicked = false;
+
+    btn = document.querySelector('#modifica')
+    btn.addEventListener('click', function () {
+        // If it is the first time clicking the button
+        if (isClicked) {
+            document.querySelector('.change').submit();
+            isClicked = false;
+        }
+        if (!isClicked) {
+            elements = ['#nominativo', '#ruolo', '#riposi', '#ore', '#piu_turni', '#inizio', '#fine']
+                elements.forEach(selector => {
+                    let element = document.querySelector(selector)
+                    element.disabled = false
+                    element.classList.replace('form-control-plaintext', 'form-control');
+                })
+                btn.innerHTML = 'Salva'
+                isClicked = true;
+        }
+    })
+    
+</script>
 {% endblock %}

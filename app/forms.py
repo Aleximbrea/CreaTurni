@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms.fields import StringField, SelectField, IntegerField, BooleanField, TimeField
+from wtforms.fields import StringField, SelectField, IntegerField, BooleanField, TimeField, HiddenField
 from wtforms.validators import DataRequired, Optional, ValidationError
 from app import conn, cur
 
@@ -14,6 +14,7 @@ def user_exists(form, field):
 
 
 class AddEmployee(FlaskForm):
+    hidden_id = HiddenField('Hidden ID')
     nominativo = StringField('Nominativo', validators=[
         DataRequired("Inserire nominativo"), user_exists
     ])
