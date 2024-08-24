@@ -16,3 +16,41 @@
     justify-content: center;
 }
 
+.check {
+    border: 2px solid #75FB4C;
+    background-color: #FFFF;
+    max-width: min-content;
+    padding: 0;
+    margin: 0;
+}
+
+.check:hover {
+    border: 2px solid #75FB4C;
+    background-color: #75FB4C;
+    fill: #FFFF;
+}
+
+.check:hover svg {
+    fill: #FFFF;
+}
+
+select {
+    padding: 1vh !important;
+}
+
+.remove {
+    padding: none;
+    border: none;
+    background-color: #FFFF;
+}
+
+span {
+    display: flex;
+    flex-direction: row;
+}
+
+.assnome {
+    margin:0 !important;
+    text-align: center !important;
+}
+

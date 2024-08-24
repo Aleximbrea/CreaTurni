@@ -6,6 +6,7 @@
 {% block container %}
 <form action="" method="post" class="form" novalidate autocomplete="off">
     {{ form.hidden_tag() }}
+    {{ form.hidden_array() }}
     <div class="input-group">
         <div class="form-floating">
             {{form.nominativo(class="form-control" + (" is-invalid" if form.nominativo.errors else ""), placeholder="Nominativo") }}
@@ -46,6 +47,64 @@
             {{ form.piu_turni.label(class="form-check-label") }}
         </div>
     </div>
+    <hr>
+    <h3 class="text-center">Assegnazioni</h3>
+    <div class="container-assegnazioni">
+
+    </div>
+    <div class="input-group mt-4">
+        <div class="form-floating  me-3">
+            {{ form.assegnazione(class="form-control form-select assegnazione") }}
+        </div>
+        <div class="form-floating">
+            <button class="btn btn-success check" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#75FB4C"><path d="M378-246 154-470l43-43 181 181 384-384 43 43-427 427Z"/></svg>
+            </button>
+        </div>
+    </div>
     <button class="btn btn-secondary mt-4" type="submit">Aggiungi vigilante</button>
 </form>
+<script>
+    assegnazioni = []
+
+    document.querySelector('.form').addEventListener('submit', function(e) {
+        array = JSON.stringify(assegnazioni)
+        document.querySelector('#hidden_array').value = array
+    })
+
+
+
+    document.querySelector('.check').addEventListener('click', function() {
+        var container = document.querySelector('.container-assegnazioni')
+        var select = document.querySelector('.assegnazione')
+        appalto_id = select.value
+        assegnazioni.push(appalto_id)
+        assegn = select.options[select.selectedIndex].text
+
+        // Removing option
+        select.remove(select.selectedIndex)
+
+        var newAssegnazione = document.createElement('span');
+        newAssegnazione.innerHTML =  `
+                <h5 class="assnome">${assegn}</h5>
+                <button class="remove" type="button" appalto-id='${appalto_id}'>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#EA3323"><path d="m330-288 150-150 150 150 42-42-150-150 150-150-42-42-150 150-150-150-42 42 150 150-150 150 42 42ZM480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 31.5-156t86-127Q252-817 325-848.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 82-31.5 155T763-197.5q-54 54.5-127 86T480-80Zm0-60q142 0 241-99.5T820-480q0-142-99-241t-241-99q-141 0-240.5 99T140-480q0 141 99.5 240.5T480-140Zm0-340Z"/></svg>
+                </button>`
+        container.appendChild(newAssegnazione)
+        newAssegnazione.querySelector('.remove').addEventListener('click', function(){
+            var id = this.getAttribute('appalto-id')
+
+            // Adding this option again
+            var option = document.createElement('option');
+            option.value = id;
+            option.text = this.parentNode.querySelector('.assnome').textContent;
+            select.appendChild(option);
+
+            // Removing index of appalto from the list
+            let index = assegnazioni.indexOf(id)
+            assegnazioni.splice(index, 1);
+            this.parentNode.remove();
+        })
+    })
+</script>
 {% endblock %}

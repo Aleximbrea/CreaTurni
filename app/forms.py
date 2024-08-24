@@ -24,6 +24,8 @@ def place_exists(form, field):
 
 class AddEmployee(FlaskForm):
     hidden_id = HiddenField('Hidden ID')
+    # Used to set vigilantes assignments
+    hidden_array = HiddenField('Hidden Array')
     nominativo = StringField('Nominativo', validators=[
         DataRequired("Inserire nominativo"), user_exists
     ])
@@ -35,11 +37,17 @@ class AddEmployee(FlaskForm):
     riposi = IntegerField('Riposi', validators=[Optional()])
     inizio = TimeField('Inizio', validators=[Optional()])
     fine = TimeField('Fine', validators=[Optional()])
+    assegnazione = SelectField('Assegna...', coerce=int, validators=[
+        Optional()
+    ])
 
     def set_choices(self):
         cur.execute('SELECT id, ruolo FROM ruoli')
         choices = cur.fetchall()
         self.ruolo.choices = [(choice[0], choice[1]) for choice in choices]
+        cur.execute('SELECT id, nome FROM appalti ORDER BY nome')
+        choices = cur.fetchall()
+        self.assegnazione.choices = [(choice[0], choice[1]) for choice in choices]
 
 class AddPlace(FlaskForm):
     hidden_id = HiddenField('Hidden ID')

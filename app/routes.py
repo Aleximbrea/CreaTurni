@@ -3,6 +3,7 @@ from flask import render_template, url_for, redirect, request, jsonify
 from app.forms import AddEmployee, AddPlace
 from app import conn, cur
 from datetime import datetime
+import json
 
 @app.route("/")
 def home():
@@ -97,6 +98,7 @@ def add_employee():
     form.set_choices()
     if form.validate_on_submit():
         # Getting values from form
+        array = json.loads(form.hidden_array.data)
         nominativo = form.nominativo.data
         nominativo = nominativo.upper()
         id_ruolo = form.ruolo.data
@@ -109,6 +111,12 @@ def add_employee():
         query = f"SELECT id FROM vigilanti WHERE nominativo = '{nominativo}'"
         cur.execute(query)
         id_vigilante = cur.fetchone()[0]
+
+        # Inserting assignments
+        if array:
+            for assegn in array:
+                query = f'INSERT INTO assegnazioni (id_vigilante, id_appalto) VALUES (%s, %s)'
+                cur.execute(query, (id_vigilante, int(assegn)))
 
 
         # Inserting preferences into preference table
@@ -190,14 +198,13 @@ def delete_vigilante():
     id = int(data.get('id'))
 
     try:
-        # First i delete preferences
-        query = f'DELETE FROM preferenze WHERE id_vigilante={id}'
-        cur.execute(query)
-        conn.commit()
-        # Then i delete the vigilante
-        query = f'DELETE FROM vigilanti WHERE id={id}'
-        cur.execute(query)
-        conn.commit()
+        queries = [f'DELETE FROM preferenze WHERE id_vigilante={id}', 
+                   f'DELETE FROM assegnazioni WHERE id_vigilante={id}',
+                    f'DELETE FROM vigilanti WHERE id={id}'
+                   ]
+        for query in queries:
+            cur.execute(query)
+            conn.commit()
         return jsonify(True)
     except Exception as e:
         return jsonify(False)
