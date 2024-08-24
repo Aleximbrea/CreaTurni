@@ -19,7 +19,8 @@ tables = [
         id SERIAL PRIMARY KEY,
         nome VARCHAR(255),
         inizio DATE,
-        fine DATE
+        fine DATE,
+        indirizzo VARCHAR(255)
     )
     """,
     """

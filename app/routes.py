@@ -1,11 +1,38 @@
 from app import app
 from flask import render_template, url_for, redirect, request, jsonify
-from app.forms import AddEmployee
+from app.forms import AddEmployee, AddPlace
 from app import conn, cur
+from datetime import datetime
 
 @app.route("/")
 def home():
     return render_template('home.html')
+
+@app.route('/appalti', methods=['POST','GET'])
+def appalti():
+    
+    form = AddPlace()
+
+    search_appalto = request.args.get('appalto')
+
+    # POST
+    if form.validate_on_submit():
+        print(form.nome.data, form.inizio.data, form.fine.data, form.hidden_id.data)
+        query = f'UPDATE appalti SET nome=%s, inizio=%s, fine=%s WHERE id=%s'
+        cur.execute(query, (form.nome.data, form.inizio.data, form.fine.data, form.hidden_id.data))
+        conn.commit()
+    else:
+        print(form.inizio.data, form.fine.data, form.hidden_id.data)
+        query = f'UPDATE appalti SET inizio=%s, fine=%s WHERE id=%s'
+        cur.execute(query, (form.inizio.data, form.fine.data, form.hidden_id.data))
+        conn.commit()
+
+
+    query = f'SELECT id, nome FROM appalti ORDER BY nome' if  not search_appalto else f"SELECT id, nome FROM appalti WHERE LOWER(nome) = LOWER('{search_appalto}');"
+    cur.execute(query)
+    appalti = cur.fetchall()
+
+    return render_template('appalti.html', appalti=appalti, form=form)
 
 @app.route("/employees", methods=['POST', 'GET'])
 def employees():
@@ -94,6 +121,17 @@ def add_employee():
         print(form.errors)
     return render_template('add_employee.html', form=form)
 
+@app.route("/add_appalto", methods=['GET', 'POST'])
+def add_appalto():
+    form = AddPlace()
+    if form.validate_on_submit():
+        query = f"INSERT INTO appalti (nome, inizio, fine) VALUES (%s, %s, %s)"
+        cur.execute(query, (form.nome.data, form.inizio.data, form.fine.data))
+        conn.commit()
+        return redirect(url_for('appalti'))
+
+    return render_template('add_appalto.html', form=form)
+
 @app.route("/get_vigilante_preferences", methods=['POST'])
 def get_vigilante_preferences():
 
@@ -108,6 +146,43 @@ def get_vigilante_preferences():
     pref[4] = pref[4].strftime('%H:%M') if pref[4] else pref[4]
     pref[5] = pref[5].strftime('%H:%M') if pref[5] else pref[5]
     return jsonify(pref)
+
+@app.route("/get_appalto_info", methods=['POST'])
+def get_appalto_info():
+
+    data = request.get_json()
+    id = int(data.get('id'))
+
+    query = f'SELECT * FROM appalti WHERE id = {id}'
+    cur.execute(query)
+    info = list(cur.fetchone())
+
+    # Formatting dates
+    info[2] = info[2].strftime('%Y:%m:%d').replace(':', '-') if info[2] else None
+    info[3] = info[3].strftime('%Y:%m:%d').replace(':', '-') if info[3] else None
+
+    return jsonify(info)
+
+@app.route('/delete_appalto', methods=['POST'])
+def delete_appalto():
+    data = request.get_json()
+    id = int(data.get('id'))
+
+    # Deleting all relations 
+    queries = [
+        f'DELETE FROM orari WHERE id_appalto = {id}',
+        f'DELETE FROM assegnazioni WHERE id_appalto = {id}',
+        f'DELETE FROM servizi WHERE id_appalto = {id}',
+        f'DELETE FROM appalti WHERE id = {id}'
+    ]
+
+    try:
+        for query in queries:
+            cur.execute(query)
+            conn.commit()
+        return jsonify(True)
+    except Exception as e:
+        return jsonify(False)
 
 @app.route('/delete_vigilante', methods=['POST'])
 def delete_vigilante():
@@ -126,3 +201,4 @@ def delete_vigilante():
         return jsonify(True)
     except Exception as e:
         return jsonify(False)
+

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block css %} <link rel="stylesheet" href="../static/css/appalti.css"> {% endblock %}
+{% block title %}Appalti{% endblock %}
+{% block form %}
+<input class="form-control me-2" type="search" placeholder="Cerca appalto" aria-label="Search" style="width: 20vw;", name="appalto">
+<button class="btn btn-outline-success btn-lg" type="submit">Cerca</button>
+{% endblock %}
+{% block container %}
+<div class="add_btn mt-5">
+    <a href="{{ url_for('add_appalto')}}">
+        <button>
+            <span>Nuovo appalto</span>
+            <span><svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#747264"><path d="M453-280h60v-166h167v-60H513v-174h-60v174H280v60h173v166Zm27.27 200q-82.74 0-155.5-31.5Q252-143 197.5-197.5t-86-127.34Q80-397.68 80-480.5t31.5-155.66Q143-709 197.5-763t127.34-85.5Q397.68-880 480.5-880t155.66 31.5Q709-817 763-763t85.5 127Q880-563 880-480.27q0 82.74-31.5 155.5Q817-252 763-197.68q-54 54.31-127 86Q563-80 480.27-80Zm.23-60Q622-140 721-239.5t99-241Q820-622 721.19-721T480-820q-141 0-240.5 98.81T140-480q0 141 99.5 240.5t241 99.5Zm-.5-340Z"/></svg></span>
+        </button>
+    </a>
+</div>
+<div class="row">
+    <div class="col mt-5">
+        <div class="list-group">
+            {% if appalti %}
+                {% for appalto in appalti %}
+                    <a class="list-group-item list-group-item-action list-group-item-light" appalto-id="{{ appalto[0] }}">{{ appalto[1] }}</a>
+                {% endfor %}
+            {% else %}
+            <h1>Nessun appalto</h1>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col mt-5">
+        <div class="view">
+            <form action="" method="post" class="form change">
+                {{ form.hidden_tag() }}
+                {{ form.hidden_id(value="", id="hidden_id")}}
+                {{ form.nome(class = "form-control-plaintext nome" + (" is invalid" if form.nome.errors else ""), disabled=True, id="nome") }}
+                <hr>
+                <div class="input-group">
+                    <div class="input">
+                        {{ form.inizio.label() }}
+                        {{ form.inizio(class = "form-control-plaintext", disabled=True, id="inizio") }}
+                    </div>
+                    <div class="input">
+                        {{ form.fine.label() }}
+                        {{ form.fine(class = "form-control-plaintext", disabled=True, id="fine") }}
+                    </div>
+                </div>
+                <div class="buttons mt-3 p-4">
+                    <button type="button" class="btn btn-secondary" id="modifica">Modifica</button>
+                <button type="button" class="btn btn-danger" id="delete">Elimina</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+
+    document.querySelector('#delete').addEventListener('click', function() {
+        var id = document.querySelector('#hidden_id').value
+        delete_record('delete_appalto', id)
+    })
+
+    // Show appalto info
+    document.querySelectorAll('.list-group-item').forEach(item => {
+        item.addEventListener('click', function() {
+            var id = this.getAttribute('appalto-id')
+            
+            fetch('get_appalto_info', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({id: id})
+            }).then(response => response.json()).then(data => {
+                    document.querySelector('#hidden_id').value=data[0]
+                    document.querySelector('#nome').value=data[1]
+                    document.querySelector('#inizio').value=data[2]
+                    document.querySelector('#fine').value=data[3]
+                })
+        })
+    })
+
+    // Modify info
+    let isClicked = false;
+    btn = document.querySelector('#modifica')
+    btn.addEventListener('click', function () {
+        // If it is the first time clicking the button
+        if (isClicked) {
+            document.querySelector('.change').submit();
+            isClicked = false;
+        }
+        if (!isClicked) {
+            if (document.querySelector('#hidden_id').value != "") {
+                elements = ['#nome', '#inizio', '#fine']
+                elements.forEach(selector => {
+                    let element = document.querySelector(selector)
+                    element.disabled = false
+                    element.classList.replace('form-control-plaintext', 'form-control');
+                })
+                btn.innerHTML = 'Salva'
+                isClicked = true;
+            }
+        }
+    })
+</script>
+{% endblock %}

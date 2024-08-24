@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block css %} <link rel="stylesheet" href="../static/css/forms.css"> {% endblock %}
+{% block title %}Aggiungi appalto{% endblock %}
+{% block back %}href=" {{ url_for('employees') }}"{% endblock %}
+{% block container %}
+<form action="" method="post" class="form" novalidate autocomplete="off">
+    {{ form.hidden_tag() }}
+        <div class="form-floating">
+            {{form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), placeholder="Nome appalto") }}
+            {{ form.nome.label() }}
+            {% for error in form.nome.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+    <div class="input-group mt-4">
+        <div class="form-floating me-3">
+            {{form.inizio(class="form-control inizio", placeholder="inizio", max=24) }}
+            {{ form.inizio.label() }}
+        </div>
+        <div class="form-floating">
+            {{form.fine(class="form-control", placeholder="Fine servizio") }}
+            {{ form.fine.label() }}
+        </div>
+    </div>
+    <button class="btn btn-secondary mt-4" type="submit">Aggiungi appalto</button>
+</form>
+{% endblock %}

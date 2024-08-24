@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms.fields import StringField, SelectField, IntegerField, BooleanField, TimeField, HiddenField
+from wtforms.fields import StringField, SelectField, IntegerField, BooleanField, TimeField, HiddenField, DateField
 from wtforms.validators import DataRequired, Optional, ValidationError
 from app import conn, cur
 
@@ -11,6 +11,15 @@ def user_exists(form, field):
 
     if field.data.upper() in nominativi:
         raise ValidationError('Nominativo già esistente')
+    
+def place_exists(form, field):
+    # Getting a list of every nominativo
+    query = "SELECT nome FROM appalti"
+    cur.execute(query)
+    appalti = [row[0].upper() for row in cur.fetchall()]
+
+    if field.data.upper() in appalti:
+        raise ValidationError('Appalto già esistente')
 
 
 class AddEmployee(FlaskForm):
@@ -31,3 +40,14 @@ class AddEmployee(FlaskForm):
         cur.execute('SELECT id, ruolo FROM ruoli')
         choices = cur.fetchall()
         self.ruolo.choices = [(choice[0], choice[1]) for choice in choices]
+
+class AddPlace(FlaskForm):
+    hidden_id = HiddenField('Hidden ID')
+    nome = StringField('Nome', validators=[
+        DataRequired('Inserisci un nome'),
+        place_exists
+    ])
+    indirizzo = StringField('Indirizzo', validators=[Optional()])
+    inizio = DateField('Inizio appalto', validators=[Optional()])
+    fine = DateField('Fine appalto', validators=[Optional()])
+    

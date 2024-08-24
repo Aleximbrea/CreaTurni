@@ -1,0 +1,57 @@
+.add_btn {
+    display: flex;
+    justify-content: center;
+    font-size: 36px;
+}
+
+.add_btn button {
+    padding: 2vh 3vw;
+    border-radius: 20px;
+    background-color: #E0CCBE;
+    color: #3C3633;
+    cursor: pointer;
+    border: 1px solid #3C3633;
+}
+
+.add_btn button:hover{
+    background-color: #747264;
+}
+
+.add_btn button:hover span, .add_btn button:hover span svg {
+    color: #FFFF;
+    fill: #FFFF !important;
+}
+
+.list-group {
+    max-width: 60%;
+    border: 1px solid #3C3633;
+    font-size: 24px;
+}
+
+.view {
+    padding: 1vh;
+    height: 100%;
+    width: 100%;
+    background-color: #FFFF;
+}
+
+.input {
+    margin: 1vh;
+    display: flex;
+    flex-direction: column;
+    font-size: 20px;
+}
+
+.input-group {
+    margin-top: 2vh;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+a {
+    cursor: pointer;
+}
+
+.nome {
+    font-size: 32px;
+}

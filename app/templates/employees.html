@@ -23,10 +23,10 @@
                             <div class="dropdown-toggle" role_id ="{{ ruolo[0] }}">
                                 {{ ruolo[1] }}
                             </div>
-                            <div class="dropdown-menu" id="dropdownMenu{{ ruolo[0] }}">
+                            <div class="dropdown-menu list-group" id="dropdownMenu{{ ruolo[0] }}">
                                 {% for vigilante in vigilanti %}
                                     {% if vigilante[2] == ruolo[0] %}
-                                        <a href="#" class="dropdown-item" data-id="{{ vigilante[0] }}" data-name="{{ vigilante[1] }}" data-role="{{ ruolo[1] }}">
+                                        <a href="#" class="dropdown-item list-group-item list-group-item-action list-group-item-dark" data-id="{{ vigilante[0] }}" data-name="{{ vigilante[1] }}" data-role="{{ ruolo[1] }}">
                                             {{ vigilante[1] }}
                                         </a>
                                     {% endif %}
@@ -93,19 +93,7 @@
     // Delete vigilante
     document.querySelector('#delete').addEventListener('click', function () {
         var id = document.querySelector('#hidden_id').value
-
-        fetch('delete_vigilante', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({id: id})
-        })  .then(response => response.json())
-            .then(data => {
-                if(data==true) {
-                    window.location.reload();
-                }
-            })
+        delete_record('delete_vigilante', id)
     })
     // Show vigilantes
     document.querySelectorAll('.dropdown-toggle').forEach(item => {
@@ -163,7 +151,8 @@
             isClicked = false;
         }
         if (!isClicked) {
-            elements = ['#nominativo', '#ruolo', '#riposi', '#ore', '#piu_turni', '#inizio', '#fine']
+            if (document.querySelector('#hidden_id').value != "") {
+                elements = ['#nominativo', '#ruolo', '#riposi', '#ore', '#piu_turni', '#inizio', '#fine']
                 elements.forEach(selector => {
                     let element = document.querySelector(selector)
                     element.disabled = false
@@ -171,6 +160,7 @@
                 })
                 btn.innerHTML = 'Salva'
                 isClicked = true;
+            }
         }
     })
     
