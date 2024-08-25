@@ -44,6 +44,7 @@
                 <form class="form change" action="" method="post" novalidate autocomplete="off">
                     {{ form.hidden_tag() }}
                     {{ form.hidden_id(value="", id="hidden_id")}}
+                    {{ form.hidden_array(value="", id="hidden_array")}}
                     {{form.nominativo(class="form-control-plaintext nominativo" + (" is-invalid" if form.nominativo.errors else ""), disabled=True, id="nominativo") }}
                     {% for error in form.nominativo.errors %}
                     <div class="invalid-feedback">{{ error }}</div>
@@ -80,6 +81,10 @@
                             </div>
                         </div>
                     </div>
+                    <hr>
+                    <h4 class="text-center">Assegnazioni</h4>
+                    <div class="container-assegnazioni d-flex flex-column">
+                    </div>
                     <div class="buttons mt-3 p-4">
                         <button type="button" class="btn btn-secondary" id="modifica">Modifica</button>
                     <button type="button" class="btn btn-danger" id="delete">Elimina</button>
@@ -89,11 +94,13 @@
         </div>
     </div>
 <script>
-
+    var assegnazionToDelete = [];
     // Delete vigilante
     document.querySelector('#delete').addEventListener('click', function () {
         var id = document.querySelector('#hidden_id').value
-        delete_record('delete_vigilante', id)
+        sendID('delete_vigilante', id).then(
+            window.location.reload()
+        )
     })
     // Show vigilantes
     document.querySelectorAll('.dropdown-toggle').forEach(item => {
@@ -108,49 +115,64 @@
     document.querySelectorAll('.dropdown-item').forEach(item => {
         item.addEventListener('click', function(event) {
             event.preventDefault();
+
+            var container_assegnazioni = document.querySelector('.container-assegnazioni')
+
             var id_vigilante = this.getAttribute('data-id');
+            document.querySelector('#hidden_id').value = id_vigilante
+
             var nominativo = this.getAttribute('data-name');
+            document.getElementById('nominativo').value = nominativo;
+
             var ruolo = this.getAttribute('data-role');
             
-            // Sending post request to retrive the clicked user preferences
-            fetch('get_vigilante_preferences', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({id: id_vigilante})
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('nominativo').value = nominativo;
+            container_assegnazioni.innerHTML = ''
+            
+            // Setting default value of select input box for role
+            var select = document.querySelector('.ruolo');
+            selectOption(select, ruolo)
 
-                // Code to select ruolo option in the select input
-               var select = document.querySelector('.ruolo');
-               opzioni = Array.from(select.options);
-               opzione = opzioni.find(item => item.text === ruolo);
-               opzione.selected = true;
+            // Sending post request to retrive the clicked vigilante preferences
+            sendID('get_vigilante_preferences', id_vigilante).then(
+                data => {
+                    var preferenze = data[0][0];
+                    var assegnazioni = data[1]
 
-               document.querySelector('#hidden_id').value = id_vigilante
-               document.querySelector('#inizio').value = data[4]
-               document.querySelector('#fine').value = data[5]
-               document.querySelector('#piu_turni').checked = data[3]
-               document.querySelector('#riposi').value = data[6]
-               document.querySelector('#ore').value = data[2]
+                    document.querySelector('#inizio').value = preferenze.inizio
+                    document.querySelector('#fine').value = preferenze.fine
+                    document.querySelector('#piu_turni').checked = preferenze.piu_turni
+                    document.querySelector('#riposi').value = preferenze.riposi
+                    document.querySelector('#ore').value = preferenze.ore_lavoro
+
+                    assegnazioni.forEach(item => {
+                        var newAssegnazione = document.createElement('span');
+                        newAssegnazione.innerHTML =  `
+                                <h5 class="nome_assegnazione">${item.nome}</h5>
+                                <button class="remove" type="button" assegnazione-id='${item.id}' style="display:none;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#EA3323"><path d="m330-288 150-150 150 150 42-42-150-150 150-150-42-42-150 150-150-150-42 42 150 150-150 150 42 42ZM480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 31.5-156t86-127Q252-817 325-848.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 82-31.5 155T763-197.5q-54 54.5-127 86T480-80Zm0-60q142 0 241-99.5T820-480q0-142-99-241t-241-99q-141 0-240.5 99T140-480q0 141 99.5 240.5T480-140Zm0-340Z"/></svg>
+                                </button>`
+                        document.querySelector('.container-assegnazioni').appendChild(newAssegnazione)
             })
+                }
+            )
         })
     });
-
+    
     // Modify preferences
     let isClicked = false;
-
     btn = document.querySelector('#modifica')
     btn.addEventListener('click', function () {
-        // If it is the first time clicking the button
+        // Second click
         if (isClicked) {
+            array = JSON.stringify(assegnazionToDelete)
+            document.querySelector('#hidden_array').value = array
             document.querySelector('.change').submit();
             isClicked = false;
         }
+        // First click
         if (!isClicked) {
+            assegnazionToDelete = [];
+            // If a vigilante is selected
             if (document.querySelector('#hidden_id').value != "") {
                 elements = ['#nominativo', '#ruolo', '#riposi', '#ore', '#piu_turni', '#inizio', '#fine']
                 elements.forEach(selector => {
@@ -158,11 +180,18 @@
                     element.disabled = false
                     element.classList.replace('form-control-plaintext', 'form-control');
                 })
+                // Showing delete btn on assignements
+                document.querySelectorAll('.remove').forEach(item => {
+                    item.style.display = 'block'
+                    item.addEventListener('click', function () {
+                        id = item.getAttribute('assegnazione-id')
+                        assegnazionToDelete.push(id)
+                    })
+                })
                 btn.innerHTML = 'Salva'
                 isClicked = true;
             }
         }
     })
-    
 </script>
 {% endblock %}

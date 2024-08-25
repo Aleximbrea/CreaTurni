@@ -4,6 +4,7 @@ from app.forms import AddEmployee, AddPlace
 from app import conn, cur
 from datetime import datetime
 import json
+from app.functions import dictionary_query
 
 @app.route("/")
 def home():
@@ -65,6 +66,15 @@ def employees():
         query = f"UPDATE preferenze SET ore_lavoro = %s, piu_turni = %s, inizio = %s, fine = %s, riposi = %s WHERE id_vigilante = %s"
         cur.execute(query, (ore ,piu_turni, inizio,  fine, riposi, request.form.get('hidden_id')))
         conn.commit()
+
+        # Updating assegnazioni
+
+        array = json.loads(form.hidden_array.data)
+        print(array)
+        for id in array:
+            query = f'DELETE FROM assegnazioni WHERE id = {id}'
+            cur.execute(query)
+            conn.commit()
 
 
     # GET Method
@@ -146,14 +156,21 @@ def get_vigilante_preferences():
     data = request.get_json()
     vigilante_id = int(data.get('id'))
 
-    # Query to get preferences from id
-    query = f'SELECT * FROM preferenze WHERE id_vigilante = {vigilante_id}'
-    cur.execute(query)
-    pref = cur.fetchone()
-    pref = list(pref)
-    pref[4] = pref[4].strftime('%H:%M') if pref[4] else pref[4]
-    pref[5] = pref[5].strftime('%H:%M') if pref[5] else pref[5]
-    return jsonify(pref)
+    results = []
+    # Queries
+    queries = [
+        f'SELECT * FROM preferenze WHERE id_vigilante = {vigilante_id}',
+        f'SELECT assegnazioni.id, appalti.nome FROM assegnazioni INNER JOIN appalti ON assegnazioni.id_appalto = appalti.id WHERE id_vigilante = {vigilante_id}'
+    ]
+    for query in queries:
+        cur.execute(query)
+        data = dictionary_query(cur, query)
+        results.append(data)
+
+    # Formatting time objects
+    results[0][0]['inizio'] = results[0][0]['inizio'].strftime('%H:%M') if results[0][0]['inizio'] else results[0][0]['inizio']
+    results[0][0]['fine'] = results[0][0]['fine'].strftime('%H:%M') if results[0][0]['fine'] else results[0][0]['fine']
+    return jsonify(results)
 
 @app.route("/get_appalto_info", methods=['POST'])
 def get_appalto_info():
