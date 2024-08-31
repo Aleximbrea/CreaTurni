@@ -42,9 +42,12 @@ class AddEmployee(FlaskForm):
     ])
 
     def set_choices(self):
-        cur.execute('SELECT id, ruolo FROM ruoli')
-        choices = cur.fetchall()
-        self.ruolo.choices = [(choice[0], choice[1]) for choice in choices]
+        try:
+            cur.execute('SELECT id, ruolo FROM ruoli')
+            choices = cur.fetchall()
+            self.ruolo.choices = [(choice[0], choice[1]) for choice in choices]
+        except Exception as e:
+            print(e)
         cur.execute('SELECT id, nome FROM appalti ORDER BY nome')
         choices = cur.fetchall()
         self.assegnazione.choices = [(choice[0], choice[1]) for choice in choices]

@@ -25,3 +25,6 @@ Page to manage vigilantes
 - Search a vigilante
 - Changing vigilantes name, role or preferences
 - Deleting vigilantes
+
+### To-Do next
+- Manage assegnazioni on employee.html page

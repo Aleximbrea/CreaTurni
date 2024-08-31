@@ -62,19 +62,43 @@ def employees():
         fine = f'{request.form.get("fine")}' if request.form.get("fine") else None
         riposi = int(request.form.get('riposi')) if request.form.get('riposi') else None
         ore = int(request.form.get('ore')) if request.form.get('ore') else None
+        id_vigilante = request.form.get('hidden_id')
 
         query = f"UPDATE preferenze SET ore_lavoro = %s, piu_turni = %s, inizio = %s, fine = %s, riposi = %s WHERE id_vigilante = %s"
-        cur.execute(query, (ore ,piu_turni, inizio,  fine, riposi, request.form.get('hidden_id')))
+        cur.execute(query, (ore ,piu_turni, inizio,  fine, riposi, id_vigilante))
         conn.commit()
 
         # Updating assegnazioni
 
         array = json.loads(form.hidden_array.data)
         print(array)
-        for id in array:
-            query = f'DELETE FROM assegnazioni WHERE id = {id}'
-            cur.execute(query)
-            conn.commit()
+        # Getting all assegnazioni
+        query = f'SELECT * FROM assegnazioni WHERE id_vigilante = {id_vigilante}'
+        cur.execute(query)
+        res = cur.fetchall()
+        # Removing assegnazioni
+        for i in res:
+            isAssigned = False
+            for j in array:
+                if i[2] == int(j):
+                    isAssigned = True
+            if not isAssigned:
+                query = f'DELETE FROM assegnazioni WHERE id = {i[0]}'
+                print(query)
+                cur.execute(query)
+                conn.commit()
+        # Adding assegnazioni
+        for i in array:
+            isAssigned = False
+            for j in res:
+                if int(i) == j[2]:
+                    isAssigned = True
+            if not isAssigned:
+                query = f'INSERT INTO assegnazioni (id_vigilante, id_appalto) VALUES ({id_vigilante}, {int(i)})'
+                print(query)
+                cur.execute(query)
+                conn.commit()
+        print(res)
 
 
     # GET Method
@@ -160,7 +184,7 @@ def get_vigilante_preferences():
     # Queries
     queries = [
         f'SELECT * FROM preferenze WHERE id_vigilante = {vigilante_id}',
-        f'SELECT assegnazioni.id, appalti.nome FROM assegnazioni INNER JOIN appalti ON assegnazioni.id_appalto = appalti.id WHERE id_vigilante = {vigilante_id}'
+        f'SELECT appalti.id, appalti.nome FROM assegnazioni INNER JOIN appalti ON assegnazioni.id_appalto = appalti.id WHERE id_vigilante = {vigilante_id}'
     ]
     for query in queries:
         cur.execute(query)
